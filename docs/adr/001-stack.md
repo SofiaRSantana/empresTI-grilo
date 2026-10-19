@@ -1,5 +1,9 @@
 # ADR-001: Stack
 
+## Status
+
+Este ADR registra a decisão formal da arquitetura do projeto. Ele é a fonte canônica de decisão. O arquivo [AGENTS.md](../../AGENTS.md) é um resumo operacional curto para execução do trabalho; ele não redefine a arquitetura do projeto.
+
 ## Decisões
 
 | Item | Escolha |

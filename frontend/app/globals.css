@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+:root {
+  --page: #05070f;
+  --color-bg: #080c1a;
+  --sidebar-bg: #060a16;
+  --color-surface: #0e1530;
+  --surface-sunken: #0b1128;
+  --color-text: #e6eaf6;
+  --text-muted: #8a93b2;
+  --text-dim: #7c86a2;
+  --text-faint: #5e6884;
+  --text-ghost: #454e68;
+  --border-frame: #222c4a;
+  --border-card: #1f2949;
+  --border-soft: #1a2340;
+  --border-row: #161d33;
+  --border-strong: #2b3450;
+  --accent-100: #eef2fe;
+  --accent-200: #d6e0fb;
+  --accent-300: #b4c6f6;
+  --accent-400: #8aa6ee;
+  --accent-500: #5b7fe0;
+  --accent-600: #3c5dbe;
+  --accent-700: #25408f;
+  --accent-800: #132663;
+  --accent-900: #001449;
+  --success: #5fd3aa;
+  --warning: #e8b961;
+  --danger: #f0a0a5;
+  --danger-strong: #e08a90;
+}
+
+@theme inline {
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-text);
+  --font-sans: var(--font-sans);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--color-text);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: var(--accent-400);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent-300);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(91, 127, 224, 0.35);
+  color: var(--color-text);
+}
