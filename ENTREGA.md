@@ -4,9 +4,8 @@
 
 - [Repositório no GitHub](https://github.com/SofiaRSantana/empresTI-grilo)
 - [Aplicação publicada na Vercel](https://empres-ti-grilo.vercel.app/login)
-- [Projeto na Vercel](https://vercel.com/sofias-projects-3ec5cf86/empres-ti-grilo)
 
-A versão da prática foi implementada localmente. A publicação desta versão, a conferência em produção e a tag `entrega-pratica` ainda estão pendentes.
+A versão da prática foi publicada e conferida na Vercel. A tag `entrega-pratica` ainda está pendente.
 
 ## 1. Conflitos
 
@@ -14,8 +13,7 @@ A versão da prática foi implementada localmente. A publicação desta versão,
 | --- | --- | --- | --- |
 | Limite de cinco empréstimos com prazo de 14 dias úteis | Limite anterior de três e prazo sem contagem de dias úteis | Atualizar o PRD antes de implementar, para manter interface, servidor e banco de acordo com a decisão aprovada | [PRD](rules/PRD.md), [spec 004](docs/specs/004-solicitar-emprestimo.spec.md), `3eb72ec` e `64294f5` |
 | TI-0010 com situações diferentes nos briefings | Os exemplos de empréstimo divergem do inventário inicial | Adotar a situação Disponível da lista de dados iniciais, deixando TI-0004 e TI-0007 em manutenção | [Spec 003](docs/specs/003-dados-iniciais.spec.md), [carga do inventário](frontend/scripts/seed-equipment.mjs), `5dfea27` |
-| Referências ao Pexels no material | Troca solicitada para Pixabay | Usar Pixabay como origem, com crédito no catálogo e dados de proveniência no manifesto | [Skill](skills/imagens-equipamentos/SKILL.md), [spec 003](docs/specs/003-dados-iniciais.spec.md), `2b989b1` |
-| Credencial padrão de avaliação | Regras de proteção de segredos | Provisionar via ambiente protegido. Remover o arquivo de ambiente do controle de versão e prever rotação do segredo antes da publicação | [Provisionamento](frontend/scripts/provision-member.mjs), `158b7df` e `814c75d` |
+| Credencial padrão de avaliação | Regras de proteção de segredos | Provisionar via ambiente protegido e remover o arquivo de ambiente do controle de versão | [Provisionamento](frontend/scripts/provision-member.mjs), `158b7df` e `814c75d` |
 | Uso de ferramentas do Supabase para o esquema | O ADR-001 dá ao Prisma Migrate a propriedade das migrations | Supabase continua hospedando PostgreSQL, Auth e Storage. Prisma Migrate versiona o esquema da aplicação e as políticas associadas | [ADR-001](docs/adr/001-stack.md), [migrations Prisma](frontend/prisma/migrations), `a4d4be3` e `ef6e955` |
 | Corrigir o problema durante a verificação | A prática exige avaliação independente | O verificador só lê, testa e reporta. As correções ficam com a implementação e passam por nova rodada | [Verificador](agents/verificador-spec.md), `6daca9a` |
 
@@ -26,36 +24,48 @@ A versão da prática foi implementada localmente. A publicação desta versão,
 | 003 | Local de retirada e devolução | Definir endereços por item ou usar um ponto comum | Balcão de Suporte TI para todos os itens, conforme confirmação | [Spec 003](docs/specs/003-dados-iniciais.spec.md), `5dfea27` |
 | 003 | Categoria dos cabos e organização responsável | Agrupar em Acessório ou adotar Cabo no inventário da organização | Categoria Cabo. O catálogo e os vínculos são isolados pela organização da sessão | [Plano 003](docs/specs/003-dados-iniciais.plan.md), `6074e19` e `c1db99c` |
 | 003 | Papel e finalidade das contas | Usar uma única conta de teste ou separar avaliação e validação | Professor como colaborador com zero empréstimos. Sofia confere a entrega publicada. Os testes locais usam contas sintéticas | [Spec 003](docs/specs/003-dados-iniciais.spec.md), `5409011` |
-| 003 | Inscrições nos dois equipamentos difíceis de ilustrar | Manter a busca ou aprovar exceções pontuais | Aprovar os IDs 4607652 e 551287 pelos textos técnicos e legendas dos controles | [Spec 003](docs/specs/003-dados-iniciais.spec.md), `a5603c4` |
+| 003 | Inscrições nos dois equipamentos difíceis de ilustrar | Manter a busca ou aprovar exceções pontuais | Aprovar os IDs 4607652 e 551287 no lote inicial. Mais tarde, escolhi a foto ilustrativa 5095868 para a webcam | [Spec 003](docs/specs/003-dados-iniciais.spec.md), `a5603c4` e `7f9114a` |
 | 004 | Calendário e momento do atraso | Contar dias corridos, dias úteis nacionais ou o calendário local | Contar desde o dia seguinte, excluindo fins de semana e feriados nacionais, estaduais e municipais de São Paulo. A devolução pode ocorrer até o fim da data prevista no horário local | [Spec 004](docs/specs/004-solicitar-emprestimo.spec.md), `e1c659a` e `64294f5` |
 
 ## 2. Onde o agente tentou decidir
 
-A revisão inicial aplicou literalmente o filtro de texto legível às fotos da webcam e da câmera, incluindo inscrições técnicas e legendas nos botões. As imagens ficaram reprovadas até Sofia avaliar os casos e aprovar duas exceções específicas. A regra geral e os dois IDs ficaram registrados na spec no commit `a5603c4`.
+Quando pedi para trocar as fotos, o agente viu as imagens novas em outra sessão e deu a troca como concluída. Na minha aba, o notebook de 14 polegadas ainda aparecia com a foto antiga e com as faixas brancas. Mostrei o que eu estava vendo e pedi a correção. O agente sugeriu recarregar a página, mas, quando ele conferiu na minha aba, a foto antiga continuou aparecendo após recarregar. Preferi resolver isso no catálogo, porque quem entra no portal precisa ver a foto nova sem ter que limpar o cache. A correção mudou o endereço das fotos substituídas. [Spec 003](docs/specs/003-dados-iniciais.spec.md), commit `d43af5f`.
 
-## 3. Decisão de arquitetura
+## 3. Uma decisão que merece um ADR
 
-Havia duas opções defensáveis para as migrations em um projeto que usa Supabase e Prisma. O Supabase CLI poderia controlar o esquema por SQL, ou Prisma Migrate poderia manter a sequência de alterações. O ADR-001 já atribui essa responsabilidade ao Prisma. A prática aplicou essa decisão à linha de base e preservou o SQL necessário para as políticas do Supabase. O procedimento foi ajustado no commit `a4d4be3`.
+- **Decisão.** Usar um endereço novo sempre que uma foto do catálogo for substituída. O nome no Storage inclui parte do SHA-256, um identificador que muda quando o arquivo muda. A ficha do equipamento passa a apontar para esse endereço.
+- **Alternativa considerada.** Sobrescrever a imagem no endereço antigo manteria a troca mais simples, mas foi assim que o navegador continuou exibindo a versão anterior mesmo após recarregar.
+- **Por que merece um ADR.** A escolha afeta o navegador, o Storage, o banco e o script de carga. Repetir a carga com o mesmo manifesto mantém o mesmo endereço. A contrapartida é que as versões antigas continuam no Storage até uma eventual limpeza.
+- **Registro atual.** A decisão já está aplicada e registrada na spec. Um ADR próprio fica como proposta para registrar esse padrão para futuras trocas de fotos. [Spec 003](docs/specs/003-dados-iniciais.spec.md), [script de carga](frontend/scripts/seed-equipment.mjs), commit `d43af5f`.
 
 ## 4. Skill de imagens
 
-O [SKILL.md](skills/imagens-equipamentos/SKILL.md) define o fluxo, o gatilho e o limite de atuação. As [referências](skills/imagens-equipamentos/references) reúnem orientações de busca, licença e revisão. Os [scripts](skills/imagens-equipamentos/scripts) executam operações verificáveis, como processamento com Sharp, validação de dimensões, identificação de duplicatas e registro da proveniência. Pessoas, marcas, conteúdo de tela e legibilidade precisam de revisão visual.
-
-A revisão inicial reprovou 28 candidatas. Duas foram aprovadas por exceção e 26 ficaram fora do lote. Os motivos incluíram marcas, texto legível, pessoas e tela com conteúdo. O lote final contém 12 JPEGs de 800 × 600.
-
-A skill gera arquivos locais e manifesto. O envio exige o script separado de carga, as credenciais de operação e a confirmação da referência do projeto para destino remoto. A publicação é executada pela responsável pela entrega.
+- **O que ficou em cada parte.** Coloquei no `SKILL.md` a ordem do trabalho e os limites da skill. Deixei os detalhes da API, licença e critérios visuais em `references/`, para consultar durante a busca. O que dá para repetir do mesmo jeito a cada lote virou script. [Skill](skills/imagens-equipamentos/SKILL.md), [referência do Pixabay](skills/imagens-equipamentos/references/pixabay.md) e [script](skills/imagens-equipamentos/scripts/fotos.mjs).
+- **O que o código garante e o que eu reviso.** O script usa Sharp para preparar os JPEGs de 800 × 600 e confere dimensões, duplicatas e proveniência. A revisão visual fica com uma pessoa, porque uma imagem pode cumprir todas essas checagens e ainda mostrar uma marca, texto legível ou conteúdo na tela. [Testes da skill](skills/imagens-equipamentos/scripts/fotos.test.mjs).
+- **Como o envio fica separado.** O script da skill termina nos arquivos locais e no manifesto. O envio passa por um script de operação separado, que exige credenciais próprias e confirma a referência do projeto de destino. Autorizei a publicação em uma etapa separada da preparação e da verificação das fotos. [Script de carga](frontend/scripts/seed-equipment.mjs) e [configuração da operação](frontend/scripts/operation-config.mjs).
+- **Fotos reprovadas.** Na revisão inicial, 28 candidatas foram reprovadas por motivos como marcas, texto legível, pessoas ou conteúdo de tela. Aprovei duas por exceção e 26 ficaram fora daquele lote. O catálogo publicado tem 12 fotos. As exceções da versão atual ficaram registradas conforme fiz novas escolhas. [Spec 003](docs/specs/003-dados-iniciais.spec.md), commits `a5603c4`, `6c7e9a7` e `cea7f83`.
 
 ## 5. Subagente verificador
 
-O [verificador](agents/verificador-spec.md) recebe a spec e o escopo em sessão separada. Ele lê as regras, ADRs, spec, plano e tarefas na versão local para comparar os critérios com os testes e o código efetivamente exercitado. Esse contexto independente evita que justificativas da implementação substituam evidências.
-
-O verificador cobre o monólito Next.js desde a tela até os procedimentos tRPC, os serviços e o PostgreSQL. A execução usa banco descartável já preparado. O contrato do agente proíbe edição, commits, migrations e produção. A execução independente recebe configuração de teste local e nenhum segredo de produção.
+- **Quando é acionado.** Depois da implementação das tarefas e antes de eu considerar a spec pronta. Nesse momento, o verificador já pode comparar o que foi pedido com o código e os resultados dos testes. [Instruções do verificador](agents/verificador-spec.md).
+- **O que lê.** Em uma sessão separada, ele recebe o caminho da spec e o escopo. Lê as regras, os ADRs, o plano, as tarefas, os testes e o código no repositório. Assim, o resultado sai das evidências que ele encontra, sem depender da explicação de quem implementou. [Fluxo de specs](rules/spec-flow.md).
+- **Limites da execução.** O contrato do subagente veda edição, commits, migrations e acesso à produção. A sessão recebe a configuração do ambiente descartável, sem credenciais de produção na entrada. Esses limites são instruções do agente e condições da execução. O ambiente compartilhado não oferece uma trava de permissões exclusiva para esse papel. [Instruções do verificador](agents/verificador-spec.md).
+- **Como verifica o monólito.** O Playwright exercita a tela. O Vitest chama os procedimentos tRPC com `createCaller` e confere os efeitos das regras no PostgreSQL descartável. A conferência liga o que aparece no catálogo ao que o sistema registra no banco. [Regras de testes](rules/tests.md).
 
 ## 6. Verificador em ação
 
-Na execução principal, os 11 testes Vitest passaram no Supabase descartável, incluindo concorrência, recusa, isolamento e reexecução do inventário. Lint, TypeScript e a compilação Webpack da implementação passaram. A primeira execução Playwright atingiu o limite de espera durante a compilação inicial do catálogo. A espera do teste foi ajustada no commit `6daca9a`.
+### Histórico das rodadas
 
-A prova de erro plantado está registrada no commit `7e0d0de`, que baixou temporariamente o limite do serviço de cinco para quatro. O verificador executou os testes sobre a cópia isolada desse commit. O limite de cinco foi restaurado no commit `78f8227`.
+- **Preparação.** O agente preparou o lote de 12 fotos, a carga repetível, as contas de colaborador e os testes de solicitação. Na execução principal passaram 11 testes Vitest, o lint, o TypeScript e a compilação Webpack. A primeira rodada de navegador demorou além do tempo previsto porque o catálogo ainda estava compilando. O tempo de espera foi ajustado em `6daca9a`.
+- **Spec 003, inventário.** O verificador pediu provas dos 12 registros depois da primeira carga e dos mesmos identificadores de conta e vínculo depois da segunda. O teste de inventário também excedeu o tempo de espera quando rodou junto com o navegador. As verificações passaram depois que as asserções e a espera foram ajustadas em `b5defd9`. A primeira rodada ficou como **NÃO PRONTA** porque o ADR-001 ainda citava outro script e outra organização inicial, e o verificador não tinha repetido a compilação. Alinhei o ADR em `bfac152`. Na reavaliação, o verificador conferiu essa alteração e as evidências anteriores e deu o veredito **PRONTA**.
+- **Spec 004, empréstimos.** Acrescentei a conferência da data exata na tela e corrigi o teste do sexto pedido, que encontrava tanto o aviso de limite quanto o anúncio de navegação do Next.js. Depois de restringir o seletor às mensagens do EmpresTI, o teste passou com os avisos de limite e atraso. O verificador aprovou os 10 critérios. Commits `b5defd9` e `ea2f386`.
+- **O que ficou consolidado.** Na conferência em produção com a minha conta, o agente verificou os 12 itens com fotos, os itens em manutenção, cinco solicitações aceitas, o prazo em **Meus empréstimos** e a recusa do sexto pedido. Ele encerrou os cinco empréstimos de teste e conferiu que a conta do professor continuou com zero.
+- **O que ficou sem comprovação ou para depois.** O verificador usou a evidência da compilação feita na execução principal. Depois da troca dos endereços das fotos, confirmei a exibição no site e a reexecução da carga em simulação. O teste de integração dessa mudança ficou pendente porque o Docker local estava desligado. As melhorias de devolução e da mensagem de limite ficaram para uma próxima implementação. [Ver seção 8](#8-o-que-ficou-de-fora-e-o-que-faria-diferente).
+
+### Prova com erro plantado
+
+- **Erro plantado.** Reduzi temporariamente o limite de cinco para quatro no commit `7e0d0de`. O verificador trabalhou com uma cópia isolada desse commit.
+- **Resultado e restauração.** O verificador reprovou CA-04 e CA-07. Restaurei o limite de cinco no commit `78f8227`, e os testes desses critérios voltaram a passar. A tabela registra o que o verificador conseguiu comprovar na cópia com o erro.
 
 | CA da spec 004 | Evidência | Status na prova | Observação |
 | --- | --- | --- | --- |
@@ -70,9 +80,9 @@ A prova de erro plantado está registrada no commit `7e0d0de`, que baixou tempor
 | CA-09 | `frontend/src/server/api/loans.integration.test.ts:156` | SEM TESTE | A consulta no servidor passou. A tela não foi executada nesse snapshot. |
 | CA-10 | `frontend/src/server/api/loans.integration.test.ts:177` | ATENDIDO | Foram recusados pedidos sem sessão, sem vínculo e de outra organização. |
 
-A primeira revisão da spec 003 encontrou um conflito no ADR-001. As linhas 45 e 49 registram o caminho `prisma/seed.ts` e o primeiro tenant `suporte_ti`. A implementação usa `frontend/scripts/seed-equipment.mjs` e a organização Instituto Germinare, aprovada na spec 001 no commit `c405a5b`. A reconciliação formal do ADR fica com o time.
+### Tabela final da spec 003
 
-### Spec 003 após os ajustes de evidência
+- **Veredito.** PRONTA após o alinhamento do ADR-001 e a reavaliação das evidências. Commit `bfac152`.
 
 | CA | Evidência | Status local |
 | --- | --- | --- |
@@ -82,9 +92,9 @@ A primeira revisão da spec 003 encontrou um conflito no ADR-001. As linhas 45 e
 | CA-04 | `frontend/src/server/services/inventory.integration.test.ts` e `frontend/tests/e2e/catalog-and-loans.spec.ts`, reexecução preserva IDs, vínculo, objetos e situação operacional | ATENDIDO |
 | CA-05 | `skills/imagens-equipamentos/scripts/fotos.test.mjs`, rejeição de dimensão inválida, proveniência ausente e ID repetido | ATENDIDO |
 
-O verificador executou lint, dois testes Playwright, o teste de inventário e três testes da skill. A primeira execução do teste de inventário sob carga simultânea excedeu 15 segundos. O teste passou na repetição e ganhou um tempo de espera próprio em `b5defd9`. A tarefa DI-07 foi registrada como executada após o relatório. O veredito formal foi **NÃO PRONTA** pela divergência do ADR-001 e porque o verificador não repetiu a compilação de produção.
+### Tabela final da spec 004
 
-### Spec 004 após a restauração
+- **Veredito.** PRONTA após a restauração do limite e a conferência no navegador.
 
 | CA | Evidência | Status local |
 | --- | --- | --- |
@@ -99,21 +109,15 @@ O verificador executou lint, dois testes Playwright, o teste de inventário e tr
 | CA-09 | `frontend/src/server/api/loans.integration.test.ts:156` e Playwright, lista somente os próprios empréstimos em aberto e exibe datas | ATENDIDO |
 | CA-10 | `frontend/src/server/api/loans.integration.test.ts:177`, pedidos sem sessão ou de outra organização não alteram os dados | ATENDIDO |
 
-O verificador confirmou lint, 11 testes Vitest e os dois cenários Playwright. Na primeira rodada de navegador, a asserção do limite também encontrou o aviso de navegação do Next.js. O seletor foi restringido às mensagens da aplicação no commit `ea2f386`. A repetição passou com os alertas de limite e atraso. O build Webpack passou na execução principal. O verificador conferiu o artefato e a identidade dos arquivos da aplicação, sem repetir o build. Veredito formal **PRONTA**.
-
 ## 7. Regra posta à prova
 
 O projeto já pedia evidência dos critérios, mas o runner ainda não estava disponível. [Regras de checks](rules/checks.md), [testes](rules/tests.md) e [fluxo de specs](rules/spec-flow.md) passaram a especificar a execução local, os nomes dos testes com IDs de critérios e o registro de testes pulados. O commit `6daca9a` reúne essas mudanças.
 
-## 8. Fora do escopo e publicação
+## 8. O que ficou de fora e o que faria diferente
 
-Registro de devolução, renovação, fila, notificação e aprovação operacional ficaram para outra entrega. A devolução física ocorre no Balcão de Suporte TI. O Prisma não conseguiu comparar diretamente o esquema com `migrate diff` por causa das referências a `auth.users`. A aplicação das migrations e os testes SQL locais verificaram o esquema em uso.
+- **Avisar que devolvi o material.** Quero acrescentar em **Meus empréstimos** uma ação para o colaborador avisar que entregou o item no Balcão de Suporte TI. Hoje, o portal mostra o prazo e o local da devolução física.
+- **Mensagem mais clara ao atingir o limite.** O sistema já bloqueia o sexto pedido. Quero explicar na tela, com palavras mais diretas, que só dá para ficar com cinco materiais emprestados ao mesmo tempo e que é preciso devolver um deles antes de pedir outro. [Mensagem atual](frontend/src/server/api/router.ts#L33).
+- **Outros itens para uma próxima versão.** Renovação, fila de espera, notificações e aprovação operacional seguem fora do escopo da prática. [Spec 004](docs/specs/004-solicitar-emprestimo.spec.md).
+- **Manutenção futura.** O calendário de feriados móveis cobre 2026 e 2027. Preciso incluir 2028 antes que um prazo possa cruzar a virada de 2027 para 2028. [Calendário](frontend/src/server/services/loan-calendar.ts).
 
-O [calendário de feriados móveis](frontend/src/server/services/loan-calendar.ts) cobre 2026 e 2027. Inclua 2028 antes que o prazo de um empréstimo possa cruzar a virada de 2027 para 2028.
-
-1. Rotacionar a credencial do Supabase que apareceu no histórico do Git e atualizar as referências protegidas. Confirmar que o banco de produção tem backup ou ponto de recuperação.
-2. Em `frontend`, com `DATABASE_URL` e `DIRECT_URL` de produção no ambiente protegido, confirmar que o esquema público ainda está vazio. Se houver esquema legado, comparar o estado real com a linha de base conforme [a regra de migrations](rules/migration.md). No banco vazio, executar `npx prisma migrate deploy` e conferir `npx prisma migrate status`.
-3. Configurar `SUPABASE_URL` e `SUPABASE_SECRET_KEY` apenas no ambiente protegido da operação. Com a pasta do lote final disponível, executar em `frontend` `node scripts/seed-equipment.mjs <manifesto.json> --project=kofzjnnvaxciwmhoyoxt`. O manifesto precisa ficar junto dos 12 JPEGs.
-4. Provisionar Sofia e o professor como colaboradores com `node scripts/provision-member.mjs --project=kofzjnnvaxciwmhoyoxt`, preenchendo `EMPRESTI_ACCOUNT_EMAIL`, `EMPRESTI_ACCOUNT_NAME` e `EMPRESTI_ACCOUNT_PASSWORD` separadamente para cada conta, no ambiente protegido. Conferir zero empréstimos na conta de avaliação.
-5. Na Vercel, conferir a raiz `frontend` e as variáveis `DATABASE_URL`, `DIRECT_URL`, `NEXT_PUBLIC_SUPABASE_API_URL` e `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Publicar o commit final.
-6. Com a conta de Sofia, conferir login, 12 fotos com crédito, estados de manutenção, solicitação e prazo em **Meus empréstimos**. Preservar a conta do professor sem empréstimos. Após a conferência, publicar a tag `entrega-pratica` apontando para o commit entregue.
+As três migrations foram aplicadas no Supabase. A comparação direta com `prisma migrate diff` não funcionou por causa das referências a `auth.users`. O estado do esquema foi conferido pela aplicação das migrations e pelos testes SQL locais.
