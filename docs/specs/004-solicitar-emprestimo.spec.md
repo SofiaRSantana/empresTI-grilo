@@ -1,6 +1,6 @@
 # 004 — Solicitar empréstimo
 
-Status: rascunho para revisão.
+Status: comportamento aprovado em 10/11/2026.
 
 ## Objetivo e vínculo
 
