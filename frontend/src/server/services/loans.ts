@@ -6,7 +6,7 @@ import {
 } from "@/src/server/services/loan-calendar";
 
 type Borrower = { tenantId: string; userId: string };
-const maximumOpenLoans = 5;
+const maximumOpenLoans = 4;
 const maximumAttempts = 3;
 
 export async function requestLoan(
