@@ -61,7 +61,7 @@ export default function LoginPage() {
           </div>
         </section>
 
-        <section className="flex min-w-0 flex-1 items-center justify-center bg-[#080C1A] px-6 py-[clamp(1rem,6dvh,3.5rem)] sm:px-[56px]">
+        <section className="flex min-w-0 flex-1 items-center justify-center bg-[#080C1A] px-6 py-[clamp(0.75rem,3dvh,3.5rem)] sm:px-[56px]">
           <div className="w-full max-w-[372px]">
             <h2 className="text-[22px] font-semibold text-[#E6EAF6]">Entrar</h2>
             <p className="mt-[8px] text-[13px] text-[#8A93B2]">
