@@ -181,7 +181,7 @@ test("004-solicitar-emprestimo CA-02 CA-03 CA-04 CA-05 CA-08 CA-09: solicita, co
   const formattedDate = dueDate.split("-").reverse().join("/");
   await expect(page.getByRole("status").filter({ hasText: "Empréstimo confirmado" })).toContainText(formattedDate);
   await button(5).click();
-  await expect(page.getByRole("alert")).toContainText("limite de cinco");
+  await expect(page.getByRole("alert").filter({ hasText: "limite de cinco" })).toBeVisible();
   await page.getByRole("button", { name: "Meus empréstimos" }).click();
   await expect(page.getByRole("heading", { name: "Meus empréstimos" })).toBeVisible();
   await expect(page.locator("time")).toHaveCount(5);
@@ -191,5 +191,5 @@ test("004-solicitar-emprestimo CA-02 CA-03 CA-04 CA-05 CA-08 CA-09: solicita, co
   await db.loan.update({ where: { id: open[1].id }, data: { dueAt: new Date(Date.now() - 2 * 86_400_000) } });
   await page.getByRole("button", { name: "Catálogo", exact: true }).click();
   await button(5).click();
-  await expect(page.getByRole("alert")).toContainText("empréstimo em atraso");
+  await expect(page.getByRole("alert").filter({ hasText: "empréstimo em atraso" })).toBeVisible();
 });
