@@ -9,6 +9,10 @@ port = 54322
 shadow_port = 54320
 major_version = 15
 
+[db.migrations]
+# O schema da aplicação é gerenciado pelo Prisma Migrate.
+enabled = false
+
 [db.pooler]
 enabled = false
 
