@@ -50,3 +50,18 @@ Este repositório segue um monólito em Next.js App Router, com um único app, u
 - não criar branch, push, merge, fetch ou manipular git remoto nesta sessão;
 - não alterar o histórico do repositório nem sincronizar branches por CLI;
 - não abrir caixa de dados duplicada nem usar arquitetura paralela sem pedido explícito.
+
+## Subagentes
+- Ficam em agents/<nome>.md. O frontmatter diz quando delegar; o
+  corpo é a instrução completa do subagente.
+- Subagente não herda esta conversa: ao delegar, passe tudo que o
+  arquivo dele pede como entrada.
+- Se o harness não tiver subagentes, abra uma sessão nova e comece
+  com: "Aja conforme agents/<nome>.md." e as entradas pedidas.
+
+## Skills do projeto
+
+- `skills/empresti-revisar-codigo/SKILL.md`: revisão de código ou plano técnico com SOLID aplicado às camadas Next.js, tRPC e Prisma; não substitui o verificador de CAs.
+- `skills/empresti-nocturne/SKILL.md`: aplicação e revisão visual do Nocturne conforme ADR-002 e layout, nas telas e componentes abrangidos pela tarefa.
+- Ao receber tarefa compatível, leia somente a skill relevante antes de executar. Os caminhos acima são relativos à raiz; se estiver em `frontend/`, resolva a raiz primeiro. Pedido explícito pelo nome também seleciona a skill.
+- As skills orientam o trabalho do agente atual. Não são subagentes, não aprovam decisões e não ampliam o escopo autorizado. Regras e decisões continuam nas fontes referenciadas por elas.

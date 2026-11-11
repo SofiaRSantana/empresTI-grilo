@@ -5,7 +5,7 @@
 - [Repositório no GitHub](https://github.com/SofiaRSantana/empresTI-grilo)
 - [Aplicação publicada na Vercel](https://empres-ti-grilo.vercel.app/login)
 
-A versão da prática foi publicada e conferida na Vercel. A tag `entrega-pratica` ainda está pendente.
+A versão da prática foi publicada e conferida na Vercel. A tag `entrega-pratica` identifica a revisão entregue no GitHub.
 
 ## 1. Conflitos
 
@@ -119,5 +119,3 @@ O projeto já pedia evidência dos critérios, mas o runner ainda não estava di
 - **Mensagem mais clara ao atingir o limite.** O sistema já bloqueia o sexto pedido. Quero explicar na tela, com palavras mais diretas, que só dá para ficar com cinco materiais emprestados ao mesmo tempo e que é preciso devolver um deles antes de pedir outro. [Mensagem atual](frontend/src/server/api/router.ts#L33).
 - **Outros itens para uma próxima versão.** Renovação, fila de espera, notificações e aprovação operacional seguem fora do escopo da prática. [Spec 004](docs/specs/004-solicitar-emprestimo.spec.md).
 - **Manutenção futura.** O calendário de feriados móveis cobre 2026 e 2027. Preciso incluir 2028 antes que um prazo possa cruzar a virada de 2027 para 2028. [Calendário](frontend/src/server/services/loan-calendar.ts).
-
-As três migrations foram aplicadas no Supabase. A comparação direta com `prisma migrate diff` não funcionou por causa das referências a `auth.users`. O estado do esquema foi conferido pela aplicação das migrations e pelos testes SQL locais.
