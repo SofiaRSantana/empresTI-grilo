@@ -1,6 +1,6 @@
 # 003 — Dados iniciais
 
-Status: rascunho para revisão.
+Status: comportamento aprovado em 10/11/2026.
 
 ## Objetivo e vínculo
 
