@@ -17,6 +17,7 @@ const statuses: Record<string, string> = {
   available: "Disponível", borrowed: "Emprestado", maintenance: "Manutenção",
 };
 const sections = [["catalog", "Catálogo"], ["loans", "Meus empréstimos"]] as const;
+const listScroll = "min-h-0 flex-1 overflow-y-auto overscroll-contain px-1 py-1 [scrollbar-color:#2B3450_transparent] [scrollbar-gutter:stable] [scrollbar-width:thin] focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-[#5B7FE0]";
 
 function formatDueDate(date: string) {
   return date.split("-").reverse().join("/");
@@ -67,10 +68,10 @@ export default function CatalogPage() {
   return (
     <main
       data-screen-label="02 Catálogo"
-      className="min-h-screen bg-[#080C1A] px-4 py-5 text-[#E6EAF6]"
+      className="h-dvh overflow-hidden bg-[#080C1A] p-2 text-[#E6EAF6] md:px-4 md:py-5"
     >
-      <div className="mx-auto flex min-h-[900px] flex-col md:flex-row w-full max-w-[1440px] overflow-hidden rounded-[14px] border border-[#222C4A] bg-[#080C1A] shadow-[0_0_0_1px_#222C4A,0_18px_44px_rgba(0,0,0,0.6)]">
-        <aside className="flex w-full shrink-0 flex-col border-b md:w-[236px] md:border-r md:border-b-0 border-[#1A2340] bg-[#060A16] p-[22px_14px]">
+      <div className="mx-auto flex h-full w-full max-w-[1440px] flex-col overflow-hidden rounded-[14px] border border-[#222C4A] bg-[#080C1A] shadow-[0_0_0_1px_#222C4A,0_18px_44px_rgba(0,0,0,0.6)] md:flex-row">
+        <aside className="grid w-full shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-[#1A2340] bg-[#060A16] px-3 py-2 md:flex md:w-[236px] md:flex-col md:items-stretch md:gap-0 md:overflow-y-auto md:border-r md:border-b-0 md:p-[22px_14px]">
           <div className="flex items-center gap-[10px] px-[8px]">
             <div className="flex h-[28px] w-[28px] items-center justify-center rounded-[7px] bg-[#001449] text-[14px] font-semibold text-[#B4C6F6] shadow-[0_0_0_1px_#25408F]">
               E
@@ -80,8 +81,8 @@ export default function CatalogPage() {
             </span>
           </div>
 
-          <div className="mt-[26px] flex flex-col gap-[3px]">
-            <div className="px-[8px] pb-[6px] text-[10px] font-normal uppercase tracking-[0.12em] text-[#454E68]">
+          <div className="col-span-2 row-start-2 flex gap-[3px] md:mt-[26px] md:flex-col">
+            <div className="hidden px-[8px] pb-[6px] text-[10px] font-normal uppercase tracking-[0.12em] text-[#454E68] md:block">
               Colaborador
             </div>
             {sections.map(([value, label]) => (
@@ -101,8 +102,8 @@ export default function CatalogPage() {
             ))}
           </div>
 
-          <div className="mt-auto rounded-[10px] border border-[#1A2340] bg-[#0B1128] p-[12px]">
-            <div className="flex items-center gap-[10px]">
+          <div className="col-start-2 row-start-1 md:mt-auto md:rounded-[10px] md:border md:border-[#1A2340] md:bg-[#0B1128] md:p-[12px]">
+            <div className="hidden items-center gap-[10px] md:flex">
               <div className="flex h-[28px] w-[28px] items-center justify-center rounded-full bg-[#132663] text-[11px] font-semibold text-[#B4C6F6]">
                 {session?.name
                   .split(" ")
@@ -121,7 +122,7 @@ export default function CatalogPage() {
               type="button"
               onClick={() => logout.mutate()}
               disabled={logout.isPending}
-              className="mt-[12px] w-full rounded-[8px] border border-[#2B3450] px-[10px] py-[7px] text-[11px] text-[#9AA3BC] transition-colors hover:border-[#5B7FE0] hover:text-[#E6EAF6]"
+              className="w-full rounded-[8px] border border-[#2B3450] px-[10px] py-[7px] text-[11px] text-[#9AA3BC] transition-colors hover:border-[#5B7FE0] hover:text-[#E6EAF6] md:mt-[12px]"
             >
               {logout.isPending ? "Saindo..." : "Sair"}
             </button>
@@ -129,11 +130,11 @@ export default function CatalogPage() {
           </div>
         </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           {section === "catalog" && (
-          <header className="flex h-[64px] items-center justify-between border-b border-[#1A2340] px-[28px]">
+          <header className="flex h-12 shrink-0 items-center justify-between border-b border-[#1A2340] px-3 md:h-[64px] md:px-[28px]">
             <div className="flex min-w-0 flex-1 items-center gap-[12px]">
-              <div className="flex h-[36px] w-[400px] items-center gap-[8px] rounded-[8px] border border-[#222C4A] bg-[#0B1128] px-[12px] text-[#5E6884]">
+              <div className="flex h-[36px] w-full max-w-[400px] items-center gap-[8px] rounded-[8px] border border-[#222C4A] bg-[#0B1128] px-[12px] text-[#5E6884] focus-within:border-[#5B7FE0]">
                 <span className="text-[15px]">⌕</span>
                 <input
                   value={search}
@@ -149,7 +150,7 @@ export default function CatalogPage() {
           )}
 
           {section === "catalog" ? (
-          <section className="flex flex-1 flex-col gap-[22px] p-4 md:p-[28px]">
+          <section key="catalog" className="flex min-h-0 flex-1 flex-col gap-3 p-3 md:gap-[22px] md:p-[28px] [@media(max-height:430px)]:overflow-y-auto [@media(max-height:430px)]:overscroll-contain">
             <div>
               <h1 className="text-[24px] font-semibold text-[#E6EAF6]">Catálogo</h1>
               <p className="mt-[4px] text-[13px] text-[#8A93B2]">{equipmentQuery.isSuccess ? `${items.length} equipamentos · ${availableCount} disponíveis agora` : "Equipamentos do Instituto Germinare"}</p>
@@ -211,6 +212,11 @@ export default function CatalogPage() {
                 Empréstimo confirmado. Devolva até {formatDueDate(request.data.dueDate)} no Balcão de Suporte TI.
               </p>
             )}
+            <section
+              aria-label="Lista de equipamentos"
+              tabIndex={0}
+              className={`${listScroll} [@media(max-height:430px)]:flex-none [@media(max-height:430px)]:overflow-visible`}
+            >
             <div className="grid gap-[16px] sm:grid-cols-2 xl:grid-cols-3">
               {filteredItems.map((item) => (
                 <article key={item.id} className="rounded-[12px] border border-[#1F2949] bg-[#0E1530] p-[16px] transition-colors hover:border-[#3C5DBE]">
@@ -265,11 +271,12 @@ export default function CatalogPage() {
               ))}
             </div>
             {items.some((item) => item.imageUrl) && (
-              <p className="text-xs text-[#8A93B2]">Fotos de equipamentos: <a className="text-[#8AA6EE] underline" href="https://pixabay.com/">Pixabay</a>.</p>
+              <p className="mt-4 text-xs text-[#8A93B2]">Fotos de equipamentos: <a className="text-[#8AA6EE] underline" href="https://pixabay.com/">Pixabay</a>.</p>
             )}
+            </section>
           </section>
           ) : (
-            <section className="flex flex-1 flex-col gap-[22px] p-4 md:p-[28px]">
+            <section key="loans" className="flex min-h-0 flex-1 flex-col gap-3 p-3 md:gap-[22px] md:p-[28px]">
               <div>
                 <h1 className="text-[24px] font-semibold text-[#E6EAF6]">Meus empréstimos</h1>
                 <p className="mt-1 text-[13px] text-[#8A93B2]">Devolva seus equipamentos no Balcão de Suporte TI até a data indicada.</p>
@@ -283,6 +290,7 @@ export default function CatalogPage() {
               )}
               {loansQuery.data?.length === 0 && <p role="status">Você não tem empréstimos em aberto.</p>}
               {loansQuery.data && loansQuery.data.length > 0 && (
+                <section aria-label="Lista de empréstimos" tabIndex={0} className={listScroll}>
                 <ul className="grid gap-3">
                   {loansQuery.data.map((loan) => (
                     <li key={loan.id} className="flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-[#1F2949] bg-[#0E1530] p-4">
@@ -297,6 +305,7 @@ export default function CatalogPage() {
                     </li>
                   ))}
                 </ul>
+                </section>
               )}
             </section>
           )}
