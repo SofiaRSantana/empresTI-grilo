@@ -91,7 +91,7 @@ export default function CatalogPage() {
                 type="button"
                 onClick={() => setSection(value)}
                 aria-current={section === value ? "page" : undefined}
-                className={`rounded-[8px] px-[10px] py-[9px] text-left text-[13px] focus-visible:outline-[#5B7FE0] ${
+                className={`rounded-[8px] px-[10px] py-1.5 text-left text-[13px] focus-visible:outline-[#5B7FE0] md:py-[9px] ${
                   section === value
                     ? "bg-[#0E1530] text-[#E6EAF6] shadow-[inset_2px_0_0_#5B7FE0]"
                     : "text-[#9AA3BC] hover:bg-[#0B1128] hover:text-[#E6EAF6]"
@@ -122,7 +122,7 @@ export default function CatalogPage() {
               type="button"
               onClick={() => logout.mutate()}
               disabled={logout.isPending}
-              className="w-full rounded-[8px] border border-[#2B3450] px-[10px] py-[7px] text-[11px] text-[#9AA3BC] transition-colors hover:border-[#5B7FE0] hover:text-[#E6EAF6] md:mt-[12px]"
+              className="w-full rounded-[8px] border border-[#2B3450] px-[10px] py-1 text-[11px] text-[#9AA3BC] transition-colors hover:border-[#5B7FE0] hover:text-[#E6EAF6] md:mt-[12px] md:py-[7px]"
             >
               {logout.isPending ? "Saindo..." : "Sair"}
             </button>
@@ -150,13 +150,13 @@ export default function CatalogPage() {
           )}
 
           {section === "catalog" ? (
-          <section key="catalog" className="flex min-h-0 flex-1 flex-col gap-3 p-3 md:gap-[22px] md:p-[28px] [@media(max-height:430px)]:overflow-y-auto [@media(max-height:430px)]:overscroll-contain">
+          <section key="catalog" className="flex min-h-0 flex-1 flex-col gap-2 p-3 lg:gap-[22px] lg:p-[28px] [@media(max-height:430px)]:overflow-y-auto [@media(max-height:430px)]:overscroll-contain">
             <div>
-              <h1 className="text-[24px] font-semibold text-[#E6EAF6]">Catálogo</h1>
+              <h1 className="text-xl font-semibold text-[#E6EAF6] lg:text-[24px]">Catálogo</h1>
               <p className="mt-[4px] text-[13px] text-[#8A93B2]">{equipmentQuery.isSuccess ? `${items.length} equipamentos · ${availableCount} disponíveis agora` : "Equipamentos do Instituto Germinare"}</p>
             </div>
 
-            <div className="rounded-[10px] border border-[#25408F] bg-gradient-to-r from-[#0E1530] to-[#0B1128] p-[13px_16px] text-[13px] text-[#9AA3BC]">
+            <div className="rounded-[10px] border border-[#25408F] bg-gradient-to-r from-[#0E1530] to-[#0B1128] px-3 py-2 text-xs text-[#9AA3BC] lg:p-[13px_16px] lg:text-[13px]">
               <div className="flex items-center gap-[12px]">
                 <span className="text-[17px] text-[#8AA6EE]">i</span>
                 <div>
@@ -165,8 +165,8 @@ export default function CatalogPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-[8px]">
+            <div className="flex min-w-0 shrink-0 items-center justify-between gap-3 overflow-x-auto px-0.5 py-0.5 [scrollbar-color:#2B3450_transparent] [scrollbar-width:thin] lg:flex-wrap">
+              <div className="flex shrink-0 items-center gap-[8px] lg:shrink lg:flex-wrap">
                 {filters.map(([value, label]) => (
                   <button
                     key={value}
@@ -188,7 +188,7 @@ export default function CatalogPage() {
                 type="button"
                 onClick={() => setShowAvailableOnly((value) => !value)}
                 aria-pressed={showAvailableOnly}
-                className={`rounded-[8px] border px-[12px] py-[7px] text-[12px] transition-colors ${
+                className={`shrink-0 whitespace-nowrap rounded-[8px] border px-[12px] py-[7px] text-[12px] transition-colors ${
                   showAvailableOnly
                     ? "border-[#5B7FE0] bg-[rgba(91,127,224,0.12)] text-[#D6E0FB]"
                     : "border-[#2B3450] bg-transparent text-[#9AA3BC] hover:text-[#E6EAF6]"
