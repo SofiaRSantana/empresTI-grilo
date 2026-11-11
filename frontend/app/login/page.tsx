@@ -19,10 +19,10 @@ export default function LoginPage() {
   return (
     <main
       data-screen-label="01 Login"
-      className="flex min-h-screen items-center justify-center bg-[#05070F] px-4 py-6 text-[#E6EAF6]"
+      className="flex min-h-dvh items-center justify-center bg-[#05070F] px-4 py-4 text-[#E6EAF6]"
     >
-      <div className="flex min-h-[560px] w-full lg:min-h-[820px] max-w-[1440px] overflow-hidden rounded-[14px] border border-[#222C4A] bg-[#080C1A] shadow-[0_0_0_1px_#222C4A,0_18px_44px_rgba(0,0,0,0.6)]">
-        <section className="hidden w-[560px] shrink-0 lg:flex lg:flex-col justify-between bg-[linear-gradient(160deg,#001449_0%,#00102F_60%,#080C1A_100%)] p-[56px]">
+      <div className="flex min-h-[min(560px,calc(100dvh_-_2rem))] w-full max-w-[1440px] overflow-hidden rounded-[14px] border border-[#222C4A] bg-[#080C1A] shadow-[0_0_0_1px_#222C4A,0_18px_44px_rgba(0,0,0,0.6)] lg:min-h-[min(820px,calc(100dvh_-_2rem))]">
+        <section className="hidden w-[560px] shrink-0 justify-between gap-6 bg-[linear-gradient(160deg,#001449_0%,#00102F_60%,#080C1A_100%)] px-[56px] py-[clamp(1rem,6dvh,3.5rem)] lg:flex lg:flex-col">
           <div className="flex items-center gap-[10px]">
             <div className="flex h-[34px] w-[34px] items-center justify-center rounded-[8px] bg-[#001449] text-[16px] font-semibold text-[#B4C6F6] shadow-[0_0_0_1px_#25408F]">
               E
@@ -61,7 +61,7 @@ export default function LoginPage() {
           </div>
         </section>
 
-        <section className="flex flex-1 items-center justify-center bg-[#080C1A] p-6 sm:p-[56px]">
+        <section className="flex min-w-0 flex-1 items-center justify-center bg-[#080C1A] px-6 py-[clamp(1rem,6dvh,3.5rem)] sm:px-[56px]">
           <div className="w-full max-w-[372px]">
             <h2 className="text-[22px] font-semibold text-[#E6EAF6]">Entrar</h2>
             <p className="mt-[8px] text-[13px] text-[#8A93B2]">
