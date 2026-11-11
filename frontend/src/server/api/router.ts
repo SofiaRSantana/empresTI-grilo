@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { createContext } from "@/src/server/api/context";
 import { authenticate } from "@/src/server/services/auth";
 import { listEquipment } from "@/src/server/services/equipment";
+import { listOpenLoans, requestLoan } from "@/src/server/services/loans";
 import { loginInput } from "@/src/shared/login-input";
 
 const t = initTRPC.context<Awaited<ReturnType<typeof createContext>>>().create({
@@ -25,6 +26,14 @@ const tenantProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   if (!membership) throw new TRPCError({ code: "FORBIDDEN" });
   return next({ ctx: { membership } });
 });
+
+const loanErrors = {
+  missing: { code: "NOT_FOUND", message: "Equipamento não encontrado." },
+  unavailable: { code: "CONFLICT", message: "Este equipamento não está disponível." },
+  limit: { code: "CONFLICT", message: "Você atingiu o limite de cinco empréstimos em aberto." },
+  overdue: { code: "CONFLICT", message: "Você tem um empréstimo em atraso. Devolva o item antes de solicitar outro." },
+  conflict: { code: "CONFLICT", message: "Houve outra solicitação ao mesmo tempo. Atualize o catálogo e tente novamente." },
+} as const;
 
 export const appRouter = t.router({
   auth: t.router({
@@ -51,6 +60,15 @@ export const appRouter = t.router({
   }),
   equipment: t.router({
     list: tenantProcedure.input(z.void()).query(({ ctx }) => listEquipment(ctx.db, ctx.membership.tenantId)),
+  }),
+  loan: t.router({
+    request: tenantProcedure.input(z.strictObject({ equipmentId: z.uuid() }))
+      .mutation(async ({ ctx, input }) => {
+        const result = await requestLoan(ctx.db, ctx.membership, input.equipmentId);
+        if (result.status !== "ok") throw new TRPCError(loanErrors[result.status]);
+        return { id: result.id, dueDate: result.dueDate };
+      }),
+    listMine: tenantProcedure.input(z.void()).query(({ ctx }) => listOpenLoans(ctx.db, ctx.membership)),
   }),
 });
 

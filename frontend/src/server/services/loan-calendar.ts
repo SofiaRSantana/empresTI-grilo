@@ -45,3 +45,7 @@ export function calculateLoanDueDate(requestedAt: Date): string {
 export function isOpenLoanOverdue(dueDate: string, now: Date): boolean {
   return saoPauloDate.format(now) > dueDate;
 }
+
+export function toLoanDueDate(storedDueAt: Date): string {
+  return saoPauloDate.format(storedDueAt);
+}

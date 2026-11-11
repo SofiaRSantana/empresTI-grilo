@@ -16,12 +16,28 @@ const categories: Record<string, string> = {
 const statuses: Record<string, string> = {
   available: "Disponível", borrowed: "Emprestado", maintenance: "Manutenção",
 };
+const sections = [["catalog", "Catálogo"], ["loans", "Meus empréstimos"]] as const;
+
+function formatDueDate(date: string) {
+  return date.split("-").reverse().join("/");
+}
 
 export default function CatalogPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const utils = trpc.useUtils();
+  const [section, setSection] = useState<(typeof sections)[number][0]>("catalog");
   const sessionQuery = trpc.auth.session.useQuery(undefined, { retry: false });
   const equipmentQuery = trpc.equipment.list.useQuery(undefined, { retry: false });
+  const loansQuery = trpc.loan.listMine.useQuery(undefined, { enabled: section === "loans", retry: false });
+  const request = trpc.loan.request.useMutation({
+    onSuccess: async () => {
+      await Promise.all([utils.equipment.list.invalidate(), utils.loan.listMine.invalidate()]);
+    },
+    onError: async (error) => {
+      if (error.data?.code === "CONFLICT") await utils.equipment.list.invalidate();
+    },
+  });
   const logout = trpc.auth.logout.useMutation({
     onSuccess: () => {
       queryClient.clear();
@@ -31,7 +47,8 @@ export default function CatalogPage() {
   const [selectedFilter, setSelectedFilter] = useState<(typeof filters)[number][0]>("all");
   const [showAvailableOnly, setShowAvailableOnly] = useState(false);
   const [search, setSearch] = useState("");
-  const authError = sessionQuery.error?.data?.code ?? equipmentQuery.error?.data?.code;
+  const authError = sessionQuery.error?.data?.code ?? equipmentQuery.error?.data?.code ??
+    loansQuery.error?.data?.code ?? request.error?.data?.code;
 
   useEffect(() => {
     if (authError === "UNAUTHORIZED" || authError === "FORBIDDEN") router.replace("/login");
@@ -67,10 +84,21 @@ export default function CatalogPage() {
             <div className="px-[8px] pb-[6px] text-[10px] font-normal uppercase tracking-[0.12em] text-[#454E68]">
               Colaborador
             </div>
-            <button className="flex items-center gap-[10px] rounded-[8px] bg-[#0E1530] px-[10px] py-[9px] text-left text-[13px] text-[#E6EAF6] shadow-[inset_2px_0_0_#5B7FE0]">
-              <span className="text-[16px] text-[#8AA6EE]">•</span>
-              Catálogo
-            </button>
+            {sections.map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setSection(value)}
+                aria-current={section === value ? "page" : undefined}
+                className={`rounded-[8px] px-[10px] py-[9px] text-left text-[13px] focus-visible:outline-[#5B7FE0] ${
+                  section === value
+                    ? "bg-[#0E1530] text-[#E6EAF6] shadow-[inset_2px_0_0_#5B7FE0]"
+                    : "text-[#9AA3BC] hover:bg-[#0B1128] hover:text-[#E6EAF6]"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
 
           <div className="mt-auto rounded-[10px] border border-[#1A2340] bg-[#0B1128] p-[12px]">
@@ -102,6 +130,7 @@ export default function CatalogPage() {
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
+          {section === "catalog" && (
           <header className="flex h-[64px] items-center justify-between border-b border-[#1A2340] px-[28px]">
             <div className="flex min-w-0 flex-1 items-center gap-[12px]">
               <div className="flex h-[36px] w-[400px] items-center gap-[8px] rounded-[8px] border border-[#222C4A] bg-[#0B1128] px-[12px] text-[#5E6884]">
@@ -117,7 +146,9 @@ export default function CatalogPage() {
             </div>
 
           </header>
+          )}
 
+          {section === "catalog" ? (
           <section className="flex flex-1 flex-col gap-[22px] p-4 md:p-[28px]">
             <div>
               <h1 className="text-[24px] font-semibold text-[#E6EAF6]">Catálogo</h1>
@@ -174,6 +205,12 @@ export default function CatalogPage() {
               </div>
             )}
             {equipmentQuery.isSuccess && filteredItems.length === 0 && <p role="status">Nenhum equipamento encontrado.</p>}
+            {request.error && <p role="alert" className="text-sm text-[#F0A0A5]">{request.error.message}</p>}
+            {request.data && (
+              <p role="status" className="text-sm text-[#5FD3AA]">
+                Empréstimo confirmado. Devolva até {formatDueDate(request.data.dueDate)} no Balcão de Suporte TI.
+              </p>
+            )}
             <div className="grid gap-[16px] sm:grid-cols-2 xl:grid-cols-3">
               {filteredItems.map((item) => (
                 <article key={item.id} className="rounded-[12px] border border-[#1F2949] bg-[#0E1530] p-[16px] transition-colors hover:border-[#3C5DBE]">
@@ -213,6 +250,17 @@ export default function CatalogPage() {
                     <div>Categoria: {categories[item.category] ?? item.category}</div>
                     <div>Patrimônio: {item.patrimonyCode}</div>
                   </div>
+                  <button
+                    type="button"
+                    disabled={item.status !== "available" || request.isPending}
+                    onClick={() => request.mutate({ equipmentId: item.id })}
+                    aria-label={item.status === "available" ? `Solicitar ${item.name}, patrimônio ${item.patrimonyCode}` : undefined}
+                    className="mt-[18px] w-full rounded-[8px] border border-[#5B7FE0] px-3 py-2 text-[12px] text-[#B4C6F6] hover:bg-[rgba(91,127,224,0.12)] focus-visible:outline-[#5B7FE0] disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    {request.isPending && request.variables.equipmentId === item.id
+                      ? "Solicitando..."
+                      : item.status === "available" ? "Solicitar empréstimo" : "Indisponível"}
+                  </button>
                 </article>
               ))}
             </div>
@@ -220,6 +268,38 @@ export default function CatalogPage() {
               <p className="text-xs text-[#8A93B2]">Fotos de equipamentos: <a className="text-[#8AA6EE] underline" href="https://pixabay.com/">Pixabay</a>.</p>
             )}
           </section>
+          ) : (
+            <section className="flex flex-1 flex-col gap-[22px] p-4 md:p-[28px]">
+              <div>
+                <h1 className="text-[24px] font-semibold text-[#E6EAF6]">Meus empréstimos</h1>
+                <p className="mt-1 text-[13px] text-[#8A93B2]">Devolva seus equipamentos no Balcão de Suporte TI até a data indicada.</p>
+              </div>
+              {loansQuery.isPending && <p role="status">Carregando seus empréstimos...</p>}
+              {loansQuery.isError && (
+                <div role="alert" className="flex flex-wrap items-center gap-3 text-sm text-[#F0A0A5]">
+                  <p>Não foi possível carregar seus empréstimos.</p>
+                  <button type="button" onClick={() => loansQuery.refetch()} className="rounded-lg border border-[#5B7FE0] px-3 py-1">Tentar novamente</button>
+                </div>
+              )}
+              {loansQuery.data?.length === 0 && <p role="status">Você não tem empréstimos em aberto.</p>}
+              {loansQuery.data && loansQuery.data.length > 0 && (
+                <ul className="grid gap-3">
+                  {loansQuery.data.map((loan) => (
+                    <li key={loan.id} className="flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-[#1F2949] bg-[#0E1530] p-4">
+                      <div>
+                        <p className="text-sm font-semibold">{loan.equipment.name}</p>
+                        <p className="mt-1 text-xs text-[#8A93B2]">Patrimônio: {loan.equipment.patrimonyCode}</p>
+                      </div>
+                      <p className={`text-sm ${loan.overdue ? "text-[#F0A0A5]" : "text-[#B4C6F6]"}`}>
+                        {loan.overdue ? "Em atraso desde o fim de " : "Devolver até "}
+                        <time dateTime={loan.dueDate}>{formatDueDate(loan.dueDate)}</time>
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          )}
         </div>
       </div>
     </main>
