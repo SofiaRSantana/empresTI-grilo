@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { PrismaClient } from "@prisma/client";
 import sharp from "sharp";
 import { createOperationsClient } from "./operation-config.mjs";
@@ -24,7 +25,7 @@ const equipment = [
 
 const sha256 = (data) => createHash("sha256").update(data).digest("hex");
 
-async function readInventory(manifestPath) {
+async function readInventory(manifestPath, organizationSlug) {
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   if (!Array.isArray(manifest) || manifest.length !== equipment.length ||
       new Set(manifest.map((entry) => entry.patrimonio)).size !== equipment.length ||
@@ -47,7 +48,7 @@ async function readInventory(manifestPath) {
     if (format !== "jpeg" || width !== 800 || height !== 600 || sha256(photo) !== entry.sha256) {
       throw new Error(`Arquivo ou dimensões divergentes para ${patrimonyCode}.`);
     }
-    return { patrimonyCode, name, category, status, imagePath: `${tenantSlug}/${filename}`, photo, hash: entry.sha256 };
+    return { patrimonyCode, name, category, status, imagePath: `${organizationSlug}/${filename}`, photo, hash: entry.sha256 };
   }));
 }
 
@@ -90,40 +91,51 @@ async function ensurePhoto(bucket, item) {
   }
 }
 
+export async function syncEquipmentInventory(
+  db,
+  storage,
+  manifestPath,
+  organization = { slug: tenantSlug, name: tenantName },
+) {
+  const inventory = await readInventory(manifestPath, organization.slug);
+  const bucket = await ensureBucket(storage);
+  for (const item of inventory) await ensurePhoto(bucket, item);
+  await db.$transaction(async (tx) => {
+    const tenant = await tx.tenant.upsert({
+      where: { slug: organization.slug },
+      create: organization,
+      update: {},
+    });
+    for (const { patrimonyCode, name, category, status, imagePath } of inventory) {
+      const update = { name, category, location, imagePath };
+      await tx.equipment.upsert({
+        where: { tenantId_patrimonyCode: { tenantId: tenant.id, patrimonyCode } },
+        create: { tenantId: tenant.id, patrimonyCode, status, ...update },
+        update,
+      });
+    }
+  }, { timeout: 15000 });
+  return inventory.length;
+}
+
 async function main() {
   const [manifestPath, projectFlag, ...extra] = process.argv.slice(2);
   if (!manifestPath || extra.length || (projectFlag && !projectFlag.startsWith("--project="))) {
     throw new Error("Uso: node scripts/seed-equipment.mjs <manifesto.json> [--project=<referência>]");
   }
   const { storage } = createOperationsClient(projectFlag);
-  const inventory = await readInventory(manifestPath);
-  const bucket = await ensureBucket(storage);
-  for (const item of inventory) await ensurePhoto(bucket, item);
-
   const db = new PrismaClient();
   try {
-    await db.$transaction(async (tx) => {
-      const tenant = await tx.tenant.upsert({
-        where: { slug: tenantSlug },
-        create: { slug: tenantSlug, name: tenantName },
-        update: {},
-      });
-      for (const { patrimonyCode, name, category, status, imagePath } of inventory) {
-        const update = { name, category, location, imagePath };
-        await tx.equipment.upsert({
-          where: { tenantId_patrimonyCode: { tenantId: tenant.id, patrimonyCode } },
-          create: { tenantId: tenant.id, patrimonyCode, status, ...update },
-          update,
-        });
-      }
-    }, { timeout: 15000 });
+    const count = await syncEquipmentInventory(db, storage, manifestPath);
+    console.log(`${count} equipamentos e fotos verificados para ${tenantName}.`);
   } finally {
     await db.$disconnect();
   }
-  console.log(`${inventory.length} equipamentos e fotos verificados para ${tenantName}.`);
 }
 
-main().catch((error) => {
-  console.error(error.message);
-  process.exitCode = 1;
-});
+if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {
+  main().catch((error) => {
+    console.error(error.message);
+    process.exitCode = 1;
+  });
+}
