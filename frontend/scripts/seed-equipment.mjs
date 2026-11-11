@@ -2,13 +2,11 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { PrismaClient } from "@prisma/client";
-import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
+import { createOperationsClient } from "./operation-config.mjs";
+import { catalogTenantSlug as tenantSlug, catalogTenantName as tenantName, equipmentPhotoBucket as bucketName } from "../src/shared/catalog-settings.mjs";
 
-const tenantSlug = "instituto-germinare";
-const tenantName = "Instituto Germinare";
 const location = "Balcão de Suporte TI";
-const bucketName = "equipment-images";
 const equipment = [
   ["TI-0001", "Notebook 14 polegadas", "notebook", "available"],
   ["TI-0002", "Notebook 15 polegadas", "notebook", "available"],
@@ -25,21 +23,6 @@ const equipment = [
 ];
 
 const sha256 = (data) => createHash("sha256").update(data).digest("hex");
-
-function checkTarget(supabaseUrl, databaseUrl, productionProject) {
-  const local = new Set(["127.0.0.1", "localhost", "[::1]"]);
-  if (local.has(supabaseUrl.hostname) && local.has(databaseUrl.hostname) && !productionProject) {
-    return;
-  }
-  const expectedHost = `${productionProject}.supabase.co`;
-  const direct = databaseUrl.hostname === `db.${expectedHost}`;
-  const pooler = databaseUrl.hostname.endsWith(".pooler.supabase.com") &&
-    databaseUrl.username === `postgres.${productionProject}`;
-  if (!/^[a-z0-9]{20}$/.test(productionProject ?? "") ||
-      supabaseUrl.origin !== `https://${expectedHost}` || (!direct && !pooler)) {
-    throw new Error("Use serviços locais ou confirme o mesmo projeto remoto do banco e do Storage.");
-  }
-}
 
 async function readInventory(manifestPath) {
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
@@ -109,18 +92,11 @@ async function ensurePhoto(bucket, item) {
 
 async function main() {
   const [manifestPath, projectFlag, ...extra] = process.argv.slice(2);
-  const { DATABASE_URL, SUPABASE_URL, SUPABASE_SECRET_KEY } = process.env;
   if (!manifestPath || extra.length || (projectFlag && !projectFlag.startsWith("--project="))) {
     throw new Error("Uso: node scripts/seed-equipment.mjs <manifesto.json> [--project=<referência>]");
   }
-  if (!DATABASE_URL || !SUPABASE_URL || !SUPABASE_SECRET_KEY) {
-    throw new Error("Configure DATABASE_URL, SUPABASE_URL e SUPABASE_SECRET_KEY no ambiente.");
-  }
-  checkTarget(new URL(SUPABASE_URL), new URL(DATABASE_URL), projectFlag?.slice("--project=".length));
+  const { storage } = createOperationsClient(projectFlag);
   const inventory = await readInventory(manifestPath);
-  const storage = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  }).storage;
   const bucket = await ensureBucket(storage);
   for (const item of inventory) await ensurePhoto(bucket, item);
 
