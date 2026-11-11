@@ -39,6 +39,7 @@ async function readInventory(manifestPath, organizationSlug) {
     const filename = `${patrimonyCode}.jpg`;
     if (entry?.filename !== filename || !Number.isSafeInteger(entry.pixabayId) ||
         entry.pixabayId < 1 || !entry.author?.trim() ||
+        (entry.versioned !== undefined && typeof entry.versioned !== "boolean") ||
         new URL(entry.sourceUrl).origin !== "https://pixabay.com" ||
         entry.licenseUrl !== "https://pixabay.com/service/license-summary/") {
       throw new Error(`Proveniência inválida para ${patrimonyCode}.`);
@@ -48,7 +49,8 @@ async function readInventory(manifestPath, organizationSlug) {
     if (format !== "jpeg" || width !== 800 || height !== 600 || sha256(photo) !== entry.sha256) {
       throw new Error(`Arquivo ou dimensões divergentes para ${patrimonyCode}.`);
     }
-    return { patrimonyCode, name, category, status, imagePath: `${organizationSlug}/${filename}`, photo, hash: entry.sha256 };
+    const storageFilename = entry.versioned ? `${patrimonyCode}-${entry.sha256.slice(0, 16)}.jpg` : filename;
+    return { patrimonyCode, name, category, status, imagePath: `${organizationSlug}/${storageFilename}`, photo, hash: entry.sha256 };
   }));
 }
 

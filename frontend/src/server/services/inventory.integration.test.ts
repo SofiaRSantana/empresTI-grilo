@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import { PrismaClient } from "@prisma/client";
 import { createClient } from "@supabase/supabase-js";
 import { describe, expect, it } from "vitest";
@@ -21,8 +22,10 @@ describe.skipIf(!databaseUrl || !localSecret || !manifest)("003-dados-iniciais c
     });
     const bucket = storage.from(equipmentPhotoBucket);
     const organization = { slug: `fixture-inventory-${randomUUID()}`, name: "Inventário de teste" };
-    const paths = Array.from({ length: 12 }, (_, index) =>
-      `${organization.slug}/TI-${String(index + 1).padStart(4, "0")}.jpg`);
+    const entries: { patrimonio: string; sha256: string; versioned?: boolean }[] =
+      JSON.parse(await readFile(manifest!, "utf8"));
+    const paths = entries.map(({ patrimonio, sha256, versioned }) =>
+      `${organization.slug}/${patrimonio}${versioned ? `-${sha256.slice(0, 16)}` : ""}.jpg`).sort();
     try {
       await syncEquipmentInventory(db, storage, manifest!, organization);
       const tenant = await db.tenant.findUniqueOrThrow({ where: { slug: organization.slug } });
