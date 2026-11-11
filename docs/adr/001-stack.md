@@ -42,11 +42,11 @@ Este ADR registra a decisão formal da arquitetura do projeto. Ele é a fonte ca
 | Instância do Prisma | Singleton global, para sobreviver ao hot reload |
 | Conexão de runtime | Supavisor, porta 6543, `?pgbouncer=true&connection_limit=1` |
 | Conexão de migration | `directUrl`, porta 5432 |
-| Seed | `prisma/seed.ts`, idempotente, cria o tenant `suporte_ti` |
+| Carga inicial | `frontend/scripts/seed-equipment.mjs`, idempotente, carrega o inventário e cria a organização do catálogo quando necessário |
 | Modelo | Tenant discriminado por coluna, banco único |
 | Coluna | `tenant_id` em toda tabela de domínio |
 | Vínculo usuário–tenant | Tabela `memberships (user_id, tenant_id, role)` |
-| Primeiro tenant | `suporte_ti`, criado no seed |
+| Primeira organização do catálogo | Instituto Germinare, identificador `instituto-germinare`, criada na carga inicial |
 | Origem do tenant | Resolvido no `createContext` a partir da sessão, nunca do input |
 | Aplicação do filtro | `tenantProcedure` injeta o `tenant_id` no service |
 | Provedor de identidade | Supabase Auth, e-mail e senha |
