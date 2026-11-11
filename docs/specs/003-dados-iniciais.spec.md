@@ -27,7 +27,7 @@ Preparar o inventário inicial e a conta de avaliação, conforme o [PRD](../../
 
 2. Todos os itens têm localização **Balcão de Suporte TI**. O patrimônio identifica um único equipamento dentro da organização.
 3. Cada item recebe uma foto exclusiva, obtida via API do Pixabay, processada com Sharp para 800 × 600 pixels e revisada antes da publicação. Descartar fotos com pessoas, marcas, logos, texto legível ou telas com conteúdo. Registrar patrimônio, ID da foto, autor, URL de origem e licença no manifesto. As cópias aprovadas ficam no Supabase Storage e abrem por URL pública.
-   - Exceção aprovada para duas fotos específicas: a inscrição técnica “HD 1080p” na webcam TI-0011 (Pixabay 4607652) e as legendas dos botões na câmera compacta TI-0012 (Pixabay 551287). As demais restrições se aplicam a ambas.
+   - Exceções aprovadas: a inscrição “720p” na foto ilustrativa da webcam TI-0011 (Pixabay 5095868, MarcWinter) e as legendas dos botões na câmera compacta TI-0012 (Pixabay 551287). A identificação do equipamento TI-0011 continua **Webcam Full HD**. A foto ilustrativa substitui a imagem anterior do Pixabay (4607652) e preenche os 800 × 600 pixels com ampliação proporcional e recorte. As demais restrições se aplicam a ambas.
 4. A conta indicada para o professor entra como colaborador na organização do catálogo e começa com zero empréstimos. A conta de Sofia indicada no chat será usada para a validação da entrega. Testes automatizados usam identidades sintéticas. As credenciais padrão são fornecidas por configuração protegida.
 5. A carga cria zero empréstimos. Repetir a carga não duplica registros, contas, vínculos ou arquivos, nem restaura a situação inicial de um equipamento cuja situação tenha mudado em operação.
 
