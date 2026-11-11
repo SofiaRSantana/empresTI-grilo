@@ -9,7 +9,7 @@ node --env-file=frontend/.env.local skills/imagens-equipamentos/scripts/fotos.mj
 node --env-file=frontend/.env.local skills/imagens-equipamentos/scripts/fotos.mjs preparar <pasta-de-trabalho> <selecao.json>
 ```
 
-Abra a página original de cada candidata para verificar se o equipamento é reconhecível e se a imagem está livre de pessoas, marcas, logos, texto legível e conteúdo de tela. Registre os IDs e os motivos das rejeições para o relatório da prática. Confirme a licença da foto na origem.
+Abra a página original de cada candidata para verificar se o equipamento é reconhecível. Confira pessoas, marcas, logos, texto legível e conteúdo de tela conforme a [spec de dados iniciais](../../../docs/specs/003-dados-iniciais.spec.md), incluindo as exceções aprovadas para IDs específicos. Registre os IDs e os motivos das rejeições para o relatório da prática. Confirme a licença da foto na origem.
 
 O arquivo de seleção é um objeto JSON que associa cada patrimônio ao ID numérico aprovado no Pixabay. Exemplo de uma entrada: `{"TI-0001": 123456}`. O lote deve conter `TI-0001` a `TI-0012`.
 
