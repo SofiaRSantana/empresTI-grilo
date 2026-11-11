@@ -1,6 +1,6 @@
 # Plano técnico — 003 Dados iniciais
 
-Status: proposto para revisão.
+Status: aprovado para execução. A divergência entre o inventário implementado e o ADR-001 está registrada no ENTREGA.md.
 
 ## Dependências e ordem
 

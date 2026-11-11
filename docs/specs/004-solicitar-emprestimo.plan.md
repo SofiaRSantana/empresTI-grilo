@@ -1,6 +1,6 @@
 # Plano técnico — 004 Solicitar empréstimo
 
-Status: proposto para revisão.
+Status: aprovado para execução, com a migration aprovada separadamente.
 
 ## Dependências
 

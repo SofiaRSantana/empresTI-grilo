@@ -43,7 +43,7 @@ Preparar o inventário inicial e a conta de avaliação, conforme o [PRD](../../
 
 ## Fora de escopo e decisões pendentes
 
-Cadastro de equipamento pela interface, empréstimos e importação de planilha ficam fora desta spec. O identificador da organização, a representação da categoria Cabo no banco e o histórico das migrations precisam ser confirmados na revisão técnica. A revisão visual tem evidência própria de aprovação e rejeição de fotos.
+Cadastro de equipamento pela interface, empréstimos e importação de planilha ficam fora desta spec. O catálogo usa a organização Instituto Germinare aprovada na spec 001 e Cabo como categoria própria. O histórico local usa Prisma Migrate. O [registro da entrega](../../ENTREGA.md) documenta a divergência do caminho do seed e do primeiro tenant com o ADR-001. A revisão visual tem evidência própria de aprovação e rejeição de fotos.
 
 ## Contrato afetado
 
