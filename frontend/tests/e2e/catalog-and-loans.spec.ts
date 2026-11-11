@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
 import { PrismaClient } from "@prisma/client";
 import { createClient } from "@supabase/supabase-js";
+import { calculateLoanDueDate } from "../../src/server/services/loan-calendar";
 
 const testDatabaseUrl = process.env.EMPRESTI_TEST_DATABASE_URL;
 const testSecret = process.env.EMPRESTI_TEST_SUPABASE_SECRET_KEY;
@@ -18,12 +19,7 @@ let tenantId: string;
 
 test.skip(!testDatabaseUrl || !testSecret || !photoManifest, "Requer Supabase descartável local e manifesto das fotos.");
 
-test.beforeAll(async () => {
-  const url = new URL(testDatabaseUrl!);
-  if (url.protocol !== "postgresql:" || url.hostname !== "127.0.0.1" || url.port !== "54322") {
-    throw new Error("Use somente o PostgreSQL descartável em 127.0.0.1:54322.");
-  }
-  db = new PrismaClient({ datasourceUrl: testDatabaseUrl });
+function provision() {
   const env = {
     ...process.env,
     DATABASE_URL: testDatabaseUrl,
@@ -34,15 +30,20 @@ test.beforeAll(async () => {
     EMPRESTI_ACCOUNT_NAME: "Colaborador de teste",
     EMPRESTI_ACCOUNT_PASSWORD: password,
   };
-  const provision = () => spawnSync(process.execPath, ["scripts/provision-member.mjs"], { env, encoding: "utf8" });
+  return spawnSync(process.execPath, ["scripts/provision-member.mjs"], { env, encoding: "utf8" });
+}
+
+test.beforeAll(async () => {
+  const url = new URL(testDatabaseUrl!);
+  if (url.protocol !== "postgresql:" || url.hostname !== "127.0.0.1" || url.port !== "54322") {
+    throw new Error("Use somente o PostgreSQL descartável em 127.0.0.1:54322.");
+  }
+  db = new PrismaClient({ datasourceUrl: testDatabaseUrl });
   const first = provision();
   expect(first.status, first.stderr).toBe(0);
   const profile = await db.profile.findFirstOrThrow({ where: { email } });
   userId = profile.id;
   tenantId = profile.tenantId;
-  const second = provision();
-  expect(second.status, second.stderr).toBe(0);
-  expect(await db.membership.count({ where: { tenantId, userId } })).toBe(1);
 });
 
 test.afterAll(async () => {
@@ -71,6 +72,9 @@ async function login(page: Page) {
 }
 
 test("003-dados-iniciais CA-01 CA-02 CA-03 e 004-solicitar-emprestimo CA-01: colaborador entra e vê o catálogo com fotos", async ({ page, context }) => {
+  const membership = await db.membership.findFirstOrThrow({ where: { tenantId, userId } });
+  expect(membership.role).toBe("member");
+  expect(await db.loan.count({ where: { tenantId, borrowerId: userId } })).toBe(0);
   await page.goto("/catalogo");
   await expect(page).toHaveURL(/\/login$/);
   await page.getByRole("button", { name: "Entrar" }).click();
@@ -127,7 +131,31 @@ test("003-dados-iniciais CA-01 CA-02 CA-03 e 004-solicitar-emprestimo CA-01: col
   await expect(page.getByText("Você não tem empréstimos em aberto.")).toBeVisible();
 });
 
-test("004-solicitar-emprestimo CA-02 CA-03 CA-04 CA-05 CA-09: solicita, consulta e vê os motivos de recusa", async ({ page }) => {
+test("003-dados-iniciais CA-04: repetir o provisionamento preserva a conta e o vínculo", async () => {
+  const admin = createClient(localSupabase, testSecret!, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  }).auth.admin;
+  const matchingAccounts = async () => {
+    const perPage = 100;
+    const ids: string[] = [];
+    for (let page = 1; ; page += 1) {
+      const { data, error } = await admin.listUsers({ page, perPage });
+      if (error) throw error;
+      ids.push(...data.users.filter((account) => account.email === email).map((account) => account.id));
+      if (data.users.length < perPage) return ids;
+    }
+  };
+  const membership = await db.membership.findFirstOrThrow({ where: { tenantId, userId } });
+  expect(await matchingAccounts()).toEqual([userId]);
+
+  const repeated = provision();
+  expect(repeated.status, repeated.stderr).toBe(0);
+  expect(await matchingAccounts()).toEqual([userId]);
+  expect(await db.membership.findMany({ where: { tenantId, userId } })).toEqual([membership]);
+  expect(await db.loan.count({ where: { tenantId, borrowerId: userId } })).toBe(0);
+});
+
+test("004-solicitar-emprestimo CA-02 CA-03 CA-04 CA-05 CA-08 CA-09: solicita, consulta e vê os motivos de recusa", async ({ page }) => {
   const identifiers: string[] = [];
   for (let index = 0; index < 6; index += 1) {
     const code = `E2E-${randomUUID()}`;
@@ -146,12 +174,18 @@ test("004-solicitar-emprestimo CA-02 CA-03 CA-04 CA-05 CA-09: solicita, consulta
     await expect(card.getByText("Emprestado")).toBeVisible();
     await expect(card.getByRole("button", { name: "Indisponível" })).toBeDisabled();
   }
-  await expect(page.getByRole("status").filter({ hasText: "Empréstimo confirmado" })).toContainText(/\d{2}\/\d{2}\/\d{4}/);
+  const lastLoan = await db.loan.findFirstOrThrow({
+    where: { tenantId, borrowerId: userId, equipmentId: fixtureEquipmentIds[4] },
+  });
+  const dueDate = calculateLoanDueDate(lastLoan.requestedAt);
+  const formattedDate = dueDate.split("-").reverse().join("/");
+  await expect(page.getByRole("status").filter({ hasText: "Empréstimo confirmado" })).toContainText(formattedDate);
   await button(5).click();
   await expect(page.getByRole("alert")).toContainText("limite de cinco");
   await page.getByRole("button", { name: "Meus empréstimos" }).click();
   await expect(page.getByRole("heading", { name: "Meus empréstimos" })).toBeVisible();
   await expect(page.locator("time")).toHaveCount(5);
+  await expect(page.locator(`time[datetime="${dueDate}"]`).first()).toHaveText(formattedDate);
   const open = await db.loan.findMany({ where: { tenantId, borrowerId: userId, returnedAt: null } });
   await db.loan.update({ where: { id: open[0].id }, data: { returnedAt: new Date() } });
   await db.loan.update({ where: { id: open[1].id }, data: { dueAt: new Date(Date.now() - 2 * 86_400_000) } });

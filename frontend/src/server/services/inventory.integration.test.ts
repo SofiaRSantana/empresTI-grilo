@@ -10,7 +10,7 @@ const localSecret = process.env.EMPRESTI_TEST_SUPABASE_SECRET_KEY;
 const manifest = process.env.EMPRESTI_TEST_PHOTO_MANIFEST;
 
 describe.skipIf(!databaseUrl || !localSecret || !manifest)("003-dados-iniciais com Supabase local", () => {
-  it("CA-04 repetir a carga mantém os IDs, os objetos e a situação operacional", async () => {
+  it("CA-01 CA-04 carrega o inventário inicial e preserva IDs, objetos e situação na reexecução", async () => {
     const url = new URL(databaseUrl!);
     if (url.protocol !== "postgresql:" || url.hostname !== "127.0.0.1" || url.port !== "54322") {
       throw new Error("Use somente o PostgreSQL descartável em 127.0.0.1:54322.");
@@ -28,7 +28,22 @@ describe.skipIf(!databaseUrl || !localSecret || !manifest)("003-dados-iniciais c
       const tenant = await db.tenant.findUniqueOrThrow({ where: { slug: organization.slug } });
       const catalog = () => db.equipment.findMany({ where: { tenantId: tenant.id }, orderBy: { patrimonyCode: "asc" } });
       const first = await catalog();
-      expect(first).toHaveLength(12);
+      expect(first.map(({ patrimonyCode, name, category, status, location }) =>
+        [patrimonyCode, name, category, status, location],
+      )).toEqual([
+        ["TI-0001", "Notebook 14 polegadas", "notebook", "available"],
+        ["TI-0002", "Notebook 15 polegadas", "notebook", "available"],
+        ["TI-0003", "Notebook 13 polegadas", "notebook", "available"],
+        ["TI-0004", "Notebook 15 polegadas", "notebook", "maintenance"],
+        ["TI-0005", "Monitor 24 polegadas", "monitor", "available"],
+        ["TI-0006", "Monitor 27 polegadas", "monitor", "available"],
+        ["TI-0007", "Monitor 22 polegadas", "monitor", "maintenance"],
+        ["TI-0008", "Cabo HDMI 2 m", "cable", "available"],
+        ["TI-0009", "Cabo USB-C 1 m", "cable", "available"],
+        ["TI-0010", "Cabo de rede 3 m", "cable", "available"],
+        ["TI-0011", "Webcam Full HD", "camera", "available"],
+        ["TI-0012", "Câmera compacta", "camera", "available"],
+      ].map((item) => [...item, "Balcão de Suporte TI"]));
       expect(first.map((item) => item.imagePath)).toEqual(paths);
       await db.equipment.update({ where: { id: first[0].id }, data: { status: "borrowed" } });
       await syncEquipmentInventory(db, storage, manifest!, organization);
@@ -45,5 +60,5 @@ describe.skipIf(!databaseUrl || !localSecret || !manifest)("003-dados-iniciais c
       await bucket.remove(paths);
       await db.$disconnect();
     }
-  });
+  }, 60_000);
 });
