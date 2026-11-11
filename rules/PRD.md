@@ -20,8 +20,9 @@ registrada se alguém lembrar de atualizar a linha.
 5. Tela de Operações com todos os empréstimos em aberto.
  
 ## Regras que Operações já decidiu
-- Cada pessoa pode estar com no máximo 3 itens ao mesmo tempo.
-- O prazo padrão de devolução é de 14 dias.
+- Cada pessoa pode ter no máximo 5 empréstimos em aberto ao mesmo tempo.
+- O prazo de devolução é de 14 dias úteis. A contagem começa no dia seguinte à solicitação e exclui sábados, domingos e feriados nacionais, estaduais e municipais aplicáveis à cidade de São Paulo.
+- A pessoa pode devolver o item no Balcão de Suporte TI até o fim da data prevista, no horário local de São Paulo. Se o empréstimo continuar em aberto no dia seguinte, ele está em atraso.
 - Quem tem item em atraso não pode pegar outro emprestado.
 - Equipamento em manutenção não aparece como disponível.
  
